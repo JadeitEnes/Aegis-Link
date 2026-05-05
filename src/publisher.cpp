@@ -50,7 +50,7 @@ public:
         ZeroMemory(frame_ptr_, sizeof(EyeTrackFrame));
 
         std::cout << "[Publisher] Shared memory hazir: "
-                  << SHM_NAME << " ("
+                  << SHM_FULL_NAME << " ("
                   << sizeof(EyeTrackFrame) << " byte)\n";
     }
 

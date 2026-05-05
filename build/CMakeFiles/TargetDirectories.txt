@@ -1,3 +1,0 @@
-D:/Kod-Program/aegis-link/build/CMakeFiles/aegis_publisher.dir
-D:/Kod-Program/aegis-link/build/CMakeFiles/edit_cache.dir
-D:/Kod-Program/aegis-link/build/CMakeFiles/rebuild_cache.dir

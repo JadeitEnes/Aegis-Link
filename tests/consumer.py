@@ -5,7 +5,7 @@ import time
 class EyeTrackFrame(ctypes.Structure):
     _pack_ = 1
     _fields_ = [
-        ("timestamp_ns", ctypes.c_uint64),
+        ("timestamps_ns", ctypes.c_uint64),
         ("gaze_x", ctypes.c_float),
         ("gaze_y", ctypes.c_float),
         ("confidence", ctypes.c_float),
@@ -48,7 +48,7 @@ def main():
                         f"gaze=({snap.gaze_x:.3f}, {snap.gaze_y:.3f}) "
                         f"conf={snap.confidence:.2f}"
                     )
-        time.sleep(0.001)
+            time.sleep(0.001)
     except KeyboardInterrupt:
         print("\nDurduruluyor...")
     finally:

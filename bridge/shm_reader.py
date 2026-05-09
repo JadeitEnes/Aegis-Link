@@ -31,6 +31,7 @@ class GazeSnapshot:
     gaze_x: float
     gaze_y: float
     confidence: float
+    frame_id: int
     timestamps_ns: int
     read_at_ns: int
 

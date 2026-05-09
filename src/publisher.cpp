@@ -16,8 +16,6 @@ private:
 public:
 
     EyeTrackPublisher() {
-        // Windows native API ile shared memory oluştur
-        // Python'un tam olarak beklediği format bu
         map_handle_ = CreateFileMappingA(
             INVALID_HANDLE_VALUE,   
             NULL,                   
@@ -28,25 +26,24 @@ public:
         );
 
         if (map_handle_ == NULL) {
-            throw std::runtime_error("CreateFileMapping basarisiz!");
+            throw std::runtime_error("CreateFileMapping basarisiz! Hata kodu: "
+                + std::to_string(GetLastError())
+            );
         }
 
-        // Belleği bu process'e map et
+
+        
         frame_ptr_ = static_cast<EyeTrackFrame*>(
-            MapViewOfFile(
-                map_handle_,
-                FILE_MAP_ALL_ACCESS,
-                0, 0,
-                sizeof(EyeTrackFrame)
-            )
+            MapViewOfFile(map_handle_, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(EyeTrackFrame))   
         );
 
         if (frame_ptr_ == NULL) {
             CloseHandle(map_handle_);
-            throw std::runtime_error("MapViewOfFile basarisiz!");
+            throw std::runtime_error("MapViewOfFile basarisiz! Hata kodu: " +std:.to_string(GetLastError())
+           );
         }
 
-        // Struct'ı sıfırla
+        
         ZeroMemory(frame_ptr_, sizeof(EyeTrackFrame));
 
         std::cout << "[Publisher] Shared memory hazir: "
@@ -70,6 +67,10 @@ public:
         );
 
         frame_ptr_->writer_flag = 0;
+    }
+
+    uint32_t frame_count() const {
+        return frame_ptr_ ? frame_ptr_->frame_id : 0;
     }
 
     ~EyeTrackPublisher() {

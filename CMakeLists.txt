@@ -8,6 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV ${OpenCV_VERSION} bulundu: ${OpenCV_DIR}")
 
+add_executable(aegis_simulator src/simulator.cpp)
+ 
+target_include_directories(aegis_simulator PRIVATE include)
+ 
+target_link_libraries(aegis_simulator PRIVATE ws2_32)
+
 add_executable(aegis_publisher src/main.cpp)
 
 target_include_directories(aegis_publisher PRIVATE include ${OpenCV_INCLUDE_DIRS})
@@ -17,7 +23,7 @@ target_link_libraries(aegis_publisher PRIVATE ${OpenCV_LIBS} ws2_32)
 
 set(OPENCV_DATA_DIR "${OpenCV_DIR}/../../../share/opencv4/haarcascades")
 
-ifEXISTS "${OPENCV_DATA_DIR}/haarcascade_frontalface_default.xml")
+if (EXISTS "${OPENCV_DATA_DIR}/haarcascade_frontalface_default.xml")
     configure_file(
         "${OPENCV_DATA_DIR}/haarcascade_frontalface_default.xml"
         "${CMAKE_BINARY_DIR}/haarcascade_frontalface_default.xml"

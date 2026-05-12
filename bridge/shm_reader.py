@@ -13,7 +13,9 @@ class _EyeTrackFrame(ctypes.Structure):
         ("confidence", ctypes.c_float),
         ("frame_id", ctypes.c_uint32),
         ("writer_flag", ctypes.c_uint8),
-        ("pad", ctypes.c_uint8 * 3),
+        ("left_eye_open", ctypes.c_uint8),
+        ("right_eye_open", ctypes.c_uint8),
+        ("pad", ctypes.c_uint8),
     ]
 EXPECTED_SIZE = 28
 
@@ -34,6 +36,8 @@ class GazeSnapshot:
     frame_id: int
     timestamps_ns: int
     read_at_ns: int
+    left_eye_open: int
+    right_eye_open: int
 
 class ShmReader:
 
@@ -92,6 +96,9 @@ class ShmReader:
             frame_id = snap_raw.frame_id,
             timestamps_ns = snap_raw.timestamps_ns,
             read_at_ns = read_at_ns,
+            left_eye_open = snap_raw.left_eye_open,
+            right_eye_open =  snap_raw.right_eye_open,
+
         )
     
     @property

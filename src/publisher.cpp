@@ -52,11 +52,19 @@ public:
     }
 
     void publish(float gx, float gy, float conf) {
+        publish_full(gx, gy, conf, 1, 1);
+    }
+
+
+
+    void publish_full(float gx, float gy, float conf, uint8_t left_open, uint8_t right_open) {
         frame_ptr_->writer_flag = 1;
 
         frame_ptr_->gaze_x     = gx;
         frame_ptr_->gaze_y     = gy;
         frame_ptr_->confidence = conf;
+        frame_ptr_->left_eye_open = left_open;
+        frame_ptr_->right_eye_open = right_open;
         frame_ptr_->frame_id++;
 
         auto now = std::chrono::steady_clock::now();

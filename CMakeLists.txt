@@ -38,15 +38,5 @@ else()
         " C:/msys64/ucrt64/share/opencv4/haarcascades/"
     )
     
-     
-
-
-
-
-
-
-
-
-
 endif()
   

@@ -12,7 +12,9 @@ struct EyeTrackFrame {
     float confidence;
     uint32_t frame_id;
     uint8_t writer_flag;
-    uint8_t _pad[3];
+    uint8_t left_eye_open;
+    uint8_t right_eye_open;
+    uint8_t _pad;
 };
 
 #pragma pack(pop)

@@ -14,22 +14,27 @@ void signal_handler(int) {
     g_running = false;
 }
 
+struct EyeState {
+        bool is_open = true;
+        double next_event_sec = 0.0;
+        bool blink_pending = false;
+};
+
+
 class EyeStateSimulator {
 public:
     EyeStateSimulator():
        rng_(std::random_device{}()),
        blink_interval_(2.0, 6.0),
-       blink_duration_(0.1, 0.4),
+       blink_duration_(0.1, 0.4)
     {
        schedule_next_blink(left_);
        schedule_next_blink(right_);
     }
 
-    struct EyeState {
-        bool is_open = true;
-        double next_event_sec = 0.0;
-        bool blink_pending = false;
-    };
+    bool left_open() const { return left_.is_open; }
+    bool right_open() const { return right_.is_open; }
+
 
     void update(double elapsed_sec) {
         update_eye(left_, elapsed_sec);
@@ -79,8 +84,8 @@ int main() {
      std::signal(SIGINT, signal_handler);
      std::signal(SIGTERM, signal_handler);
 
-     std::cout << " === Aegis-Link Simülatör Başlatıldı ===\n";
-     std::cout << " Blink simülasyonu aktif. CTRL+C ile durdur.\n\n";
+     std::cout << " === Aegis-Link Simulator Baslatildi ===\n";
+     std::cout << " Blink simulasyonu aktif. CTRL+C ile durdur.\n\n";
 
      EyeTrackPublisher pub;
      EyeStateSimulator eye_sim;
@@ -114,8 +119,8 @@ int main() {
             std::cout
             << "[Frame " << frame_count << "] "
             << "gaze=(" << gaze_x << ", " << gaze_y << ") "
-            << "L=" << (eye_sim.left_open()  ? "ACIK" : "KAPALI") << " "
-            << "R=" << (eye_sim.right_open() ? "ACIK" : "KAPALI") << " "
+            << "L=" << (eye_sim.left_open()  ? "ACIK " : "KAPALI") << " "
+            << "R=" << (eye_sim.right_open() ? "ACIK " : "KAPALI") << " "
             << "conf=" << eye_sim.confidence() << "\n";
 
         }

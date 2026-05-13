@@ -7,6 +7,7 @@
 #include <chrono>
 #include <atomic>
 #include <csignal>
+#include <memory>
 
 
 static std::atomic<bool> g_running{true};
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]) {
     double actual_fps = cap.get(cv::CAP_PROP_FPS);
     std::cout << "Kamera cozunurluk: "
     << cap.get (cv::CAP_PROP_FRAME_WIDTH)<< "x"
-    << cap.get (cv::CAP_PROP_FRAME_HEIGHT)<< 
+    << cap.get (cv::CAP_PROP_FRAME_HEIGHT) 
     << "@" << actual_fps << " FPS\n";
     
     std::unique_ptr<IGazeDetector> detector;
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
 
         if (!cap.read(frame) || frame.empty()) {
             std::cerr << " [UYARI] Boş kare - kamera bağlantısı kopmuş olabilir. \n";
-            std::this_thread:.sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
 
@@ -122,15 +123,15 @@ int main(int argc, char* argv[]) {
             } else {
                 std::cout
                     << " [Frame "<< pub.frame_count() << "] "
-                    << " tespit yok ("<< no_detection_count< < ") "
+                    << " tespit yok ("<< no_detection_count<< ") "
                     << "fps=" << fps_counter.fps() << "\n";
             }
         }
     }
     
-    std:.cout << "\nDurduruluyor...\n";
+    std::cout << "\nDurduruluyor...\n";
     cap.release();
-    return 0;-
+    return 0;
 }
 
 

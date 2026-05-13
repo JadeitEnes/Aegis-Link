@@ -6,7 +6,7 @@
 #include <string>
 #include <stdexcept>
 
-strucT GazeResult{
+struct GazeResult{
     float gaze_x;
     float gaze_y;
     float confidence;
@@ -40,7 +40,7 @@ class HaarGazeDetector : public IGazeDetector {
         }
 };
 
-std::optional<GazeResult> detect(const cv:.Mat& frame) override {
+std::optional<GazeResult> detect(const cv::Mat& frame) override {
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
     cv::equalizeHist(gray, gray);

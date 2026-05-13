@@ -39,7 +39,7 @@ public:
 
         if (frame_ptr_ == NULL) {
             CloseHandle(map_handle_);
-            throw std::runtime_error("MapViewOfFile basarisiz! Hata kodu: " +std:.to_string(GetLastError())
+            throw std::runtime_error("MapViewOfFile basarisiz! Hata kodu: " +std::to_string(GetLastError())
            );
         }
 

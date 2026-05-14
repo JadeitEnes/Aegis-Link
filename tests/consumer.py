@@ -16,13 +16,13 @@ class EyeTrackFrame(ctypes.Structure):
     ]
 
 def main():
-    print("=== Aegis-Link Python Consumer Baslatildi ===")
+    print("=== CWE Python Consumer Baslatildi ===")
     print("C++ publisher bekleniyor...")
 
     shm = None
     while shm is None:
         try:
-            shm = SharedMemory(name="aegis_eye_frame", create=False)
+            shm = SharedMemory(name="cwe_eye_frame", create=False)
         except FileNotFoundError:
             time.sleep(0.1)
 

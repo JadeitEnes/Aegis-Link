@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 
-#define SHM_FULL_NAME "Local\\aegis_eye_frame"
+#define SHM_FULL_NAME "Local\\cwe_eye_frame"
 
 class EyeTrackPublisher {
 

@@ -84,7 +84,7 @@ int main() {
      std::signal(SIGINT, signal_handler);
      std::signal(SIGTERM, signal_handler);
 
-     std::cout << " === Aegis-Link Simulator Baslatildi ===\n";
+     std::cout << " === CWE Simulator Baslatildi ===\n";
      std::cout << " Blink simulasyonu aktif. CTRL+C ile durdur.\n\n";
 
      EyeTrackPublisher pub;

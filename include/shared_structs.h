@@ -19,7 +19,7 @@ struct EyeTrackFrame {
 
 #pragma pack(pop)
 
-#define SHM_NAME "aegis_eye_frame"
+#define SHM_NAME "cwe_eye_frame"
 
 #endif
   

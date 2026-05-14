@@ -16,7 +16,7 @@ def percentile(sorted_data: list[float], p: float) -> float:
     return sorted_data[lo] * (1 - frac) + sorted_data[hi] * frac
 
 def run_benchmark(sample_count: int = 1000) -> None:
-    print (f"=== Aegis-Link Gecikme Benchmark ({sample_count} örnek) ===\n")
+    print (f"=== CWE Gecikme Benchmark ({sample_count} örnek) ===\n")
 
     latencies_us: list[float] = []
     last_frame_id = -1

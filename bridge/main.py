@@ -1,11 +1,13 @@
 import time 
 import sys
 import os
+import asyncio
+import json
 from collections import deque
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
-from typing import List
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from typing import List, Set
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -38,10 +40,26 @@ class EventResponse(BaseModel):
 reader = ShmReader()
 event_detector = EventDetector()
 _event_queue: deque[EventResponse] = deque(maxlen=50)
+_ws_clients: Set[WebSocket] = set()
+ 
+
+async def _broadcast(message: dict) -> None:
+    if not _ws_clients:
+        return
+    
+    data = json.dumps(message)
+    dead = set()
+    
+    for ws in _ws_clients:
+        try:
+            await ws.send_text(data)
+        except Exception:
+            dead.add(ws)
+    _ws_clients.difference_update(dead)
+
 
 async def _poll_loop():
-    import asyncio
-
+    
     last_frame_id = -1
 
     while True:
@@ -67,7 +85,7 @@ async def _poll_loop():
             )) 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import asyncio
+   
     print("[Bridge] Shared memory'ye bağlanılıyor...")
     try:
         reader.connect(timeout=15.0)
@@ -146,6 +164,15 @@ async def get_events():
     _event_queue.clear()
     return events
 
+@app.websocket ("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await ws.accept()
+    _ws_clients.add()
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        _ws_clients.discard(ws)        
 
     
 

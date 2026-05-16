@@ -41,7 +41,7 @@ class GazeSnapshot:
 
 class ShmReader:
 
-    SHM_NAME = "aegis_eye_frame"
+    SHM_NAME = "cwe_eye_frame"
     MAX_SPIN = 100 
 
     def __init__(self):

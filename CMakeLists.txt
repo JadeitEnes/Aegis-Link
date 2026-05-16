@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(aegis-link LANGUAGES CXX)
+project(CWE LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,18 +8,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenCV REQUIRED)
 message(STATUS "OpenCV ${OpenCV_VERSION} bulundu: ${OpenCV_DIR}")
 
-add_executable(aegis_simulator src/simulator.cpp)
+add_executable(cwe_simulator src/simulator.cpp)
  
-target_include_directories(aegis_simulator PRIVATE include)
+target_include_directories(cwe_simulator PRIVATE include)
  
-target_link_libraries(aegis_simulator PRIVATE ws2_32)
+target_link_libraries(cwe_simulator PRIVATE ws2_32)
 
-add_executable(aegis_publisher src/main.cpp)
+add_executable(cwe_publisher src/main.cpp)
 
-target_include_directories(aegis_publisher PRIVATE include ${OpenCV_INCLUDE_DIRS})
+target_include_directories(cwe_publisher PRIVATE include ${OpenCV_INCLUDE_DIRS})
 
 
-target_link_libraries(aegis_publisher PRIVATE ${OpenCV_LIBS} ws2_32)
+target_link_libraries(cwe_publisher PRIVATE ${OpenCV_LIBS} ws2_32)
 
 set(OPENCV_DATA_DIR "${OpenCV_DIR}/../../../share/opencv4/haarcascades")
 

@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     int camera_index = (argc > 1) ? std::stoi(argv[1]) : 0;
 
-    std::cout << "=== Aegis-Link Baslatildi === \n";
+    std::cout << "=== CWE Baslatildi === \n";
     std::cout << "Kamera index: " << camera_index << "\n";
 
     cv::VideoCapture cap(camera_index, cv::CAP_DSHOW);

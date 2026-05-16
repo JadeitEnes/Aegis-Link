@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ControlWithEye Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
@@ -11,9 +12,44 @@
         <h1>CWE</h1>
         <span id="status-label">Bağlanıyor...</span>
     </header>
+<main>
 <div id="canvas-wrap">
     <canvas id="gaze-canvas" width="640" height="480"></canvas>
 </div>
 
+<aside>
+    <div class="panel">
+        <h2>Durum</h2>
+        <div class="stats">
+            <div class="stat-box"><div class="label">Frame ID</div> <div class="value" id="stat-frame">-</div></div>
+            <div class="stat-box"><div class="label">Confidence</div> <div class="value" id="stat-conf">-</div></div>
+            <div class="stat-box"><div class="label">Gecikme</div> <div class="value" id="stat-lat">-</div></div>
+            <div class="stat-box"><div class="label">Konum</div> <div class="value" id="stat-pos">-</div></div>   
+        </div>
+        <div id="latency-bar-wrap"><div id="latency-bar"></div></div>
+    </div>
+    
+    <div class="panel">
+        <h2>Göz Durumu</h2>
+        <div class="eyes">
+            <div class="eye-box open" id="eye-left">
+                <div class="eye-label">SOL</div>
+                <div class="eye-icon" id="eye-left-icon">👁</div>
+            </div>
+            <div class="eye-box open" id="eye-right">
+                <div class="eye-label">SAĞ</div>
+                <div class="eye-icon" id="eye-right-icon">👁</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel flex-fill">
+        <h2>Event Geçmişi</h2>
+        <div id="event-log"></div>
+
+    </div>
+ </aside>
+</main>
+<script src="main.js"></script>  
 </body>
 </html>

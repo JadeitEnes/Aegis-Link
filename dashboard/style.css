@@ -1,0 +1,198 @@
+* { box-sizing: border-box; margin: 0; padding: 0;}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: rgb(229, 243, 229);
+    color: rgb(248, 239, 239);
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 56px 1fr;
+}
+
+header {
+    background-color: rgb(85, 54, 221);
+    border-bottom: 1px solid rgb(91, 0, 196);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+}
+
+header h1 { font-size: 18px; font-weight: 600; }
+
+#status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background-color: pink;
+    transition: background 0.3s;
+}
+
+#status-dot.connected { background: red;}
+#status-dot.degraded { background: rgb(71, 35, 104);}
+#status-label { font-size: 13px; color: rgb(102, 194, 255)}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    overflow: hidden;
+}
+
+#canvas-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(191, 171, 223);
+}
+
+canvas {
+    border: 1px solid rgb(16, 5, 20);
+    border-radius: 8px;
+}
+
+aside {
+    background: rgb(59, 34, 202);
+    border-left: 1px solid whitesmoke;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel {
+    padding: 16px;
+    border-bottom: 1px solid silver;
+}
+
+.panel.flex-fill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-bottom: none;
+}
+
+.panel h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: rgb(243, 157, 186);
+    margin-bottom: 12px;
+}
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.stat-box {
+    background: rgb(24, 25, 66);
+    border: 1px solid rgb(167, 167, 167);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.stat-box .label {
+    font-size: 11px;
+    color: rgb(247, 227, 246);
+    margin-bottom: 4px;
+}
+
+.stat-box .value {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric:tabular-nums;
+}
+
+#latency-bar-wrap {
+    height: 4px;
+    background: rgb(10, 10, 10);
+    border-radius: 2px;
+    margin-top: 10px;
+}
+
+#latency-bar {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    background: rgb(48, 219, 241);
+    transition: width 0.2s, background 0.2s;
+}
+
+.eyes {
+    display: flex;
+    gap: 12px;
+}
+
+.eye-box {
+    flex: 1;
+    background: rgb(24, 25, 66);
+    border: 1px solid silver;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.eye-box.open {
+    border-color: whitesmoke;
+}
+
+.eye-box.closed {
+    border-color: yellow;
+    background: orange;
+}
+
+.eye-label { 
+    font-size: 11px;
+    color: rgb(75, 163, 8);
+    margin-bottom: 6px;
+}
+
+.eye-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+#event-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.ev-item {
+    background: blueviolet;
+    border: 1px solid blue;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    animation: slide-in 0.2s ease;
+}
+
+.ev-item.LEFT_BLINK {
+    border-left: 3px solid #58a6ff;
+}
+
+.ev-item.RIGHT_BLINK {
+    border-left: 3px solid #3fb950;
+ }
+
+ .ev-item.BOTH_BLINK  { 
+    border-left: 3px solid #d29922;
+ }
+
+.ev-item .ev-type { 
+    font-weight: 600; margin-bottom: 2px;
+ }
+.ev-item .ev-meta {
+     font-size: 11px; color: #8d96a0;
+ }
+
+ @keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+ }

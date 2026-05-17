@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from shm_reader import ShmReader, GazeSnapshot
 from event_detector import EventDetector, GazeEvent, EventType
+from input_controller import InputController
 
 
 class GazeResponse(BaseModel):
@@ -40,8 +41,10 @@ class EventResponse(BaseModel):
 
 reader = ShmReader()
 event_detector = EventDetector()
+input_ctrl = InputController()
 _event_queue: deque[EventResponse] = deque(maxlen=50)
 _ws_clients: Set[WebSocket] = set()
+_mouse_control_enabled = True
  
 
 async def _broadcast(message: dict) -> None:
@@ -57,6 +60,17 @@ async def _broadcast(message: dict) -> None:
         except Exception:
             dead.add(ws)
     _ws_clients.difference_update(dead)
+
+def _handle_event(event_type: str) -> None:
+    
+    if not _mouse_control_enabled:
+        return
+    if event_type == "LEFT_BLINK":
+        input_ctrl.scroll(direction=1)
+    elif event_type == "RIGHT_BLINK":
+        input_ctrl.left_click()
+    elif event_type == "BOTH_BLINK":
+        input_ctrl.double_click()        
 
 
 async def _poll_loop():
@@ -103,6 +117,7 @@ async def _poll_loop():
          
 
             _event_queue.append(ev)
+            _handle_event(ev.type)
 
             await _broadcast({
                 "type": "event",
@@ -132,7 +147,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="CWE Bridge",
     description="C++ göz takip moturunu HTTP üzerinden açan köprü servisi",
-    version="0.2.0",
+    version="0.4.0",
     lifespan=lifespan,
 )  
           
@@ -192,6 +207,14 @@ async def get_events():
     events = list(_event_queue)
     _event_queue.clear()
     return events
+
+@app.post("/toggle")
+async def toggle_mouse():
+    global _mouse_control_enabled
+    _mouse_control_enabled = not _mouse_control_enabled
+    state = "aktif" if _mouse_control_enabled else "devre disi"
+    print (f"[CWE] Fare kontrolu: {state}")
+    return {"mouse_control": _mouse_control_enabled}
 
 @app.websocket ("/ws")
 async def websocket_endpoint(ws: WebSocket):

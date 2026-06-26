@@ -14,7 +14,7 @@ from pydantic import BaseModel
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from shm_reader import ShmReader, GazeSnapshot
-from event_detector import EventDetector, GazeEvent, EventType
+from event_detector import EventDetector
 from input_controller import InputController
 
 
@@ -45,6 +45,11 @@ input_ctrl = InputController()
 _event_queue: deque[EventResponse] = deque(maxlen=50)
 _ws_clients: Set[WebSocket] = set()
 _mouse_control_enabled = True
+
+# EMA smoothing state — titreşimi bastırır (0.0-1.0: düşük=yumuşak, yüksek=hassas)
+_SMOOTH_ALPHA = 0.05
+_smooth_x: float = 0.5
+_smooth_y: float = 0.5
  
 
 async def _broadcast(message: dict) -> None:
@@ -62,25 +67,33 @@ async def _broadcast(message: dict) -> None:
     _ws_clients.difference_update(dead)
 
 def _handle_event(event_type: str) -> None:
-    
     if not _mouse_control_enabled:
         return
     if event_type == "LEFT_BLINK":
         input_ctrl.scroll(direction=1)
     elif event_type == "RIGHT_BLINK":
+        input_ctrl.move(_smooth_x, _smooth_y)
         input_ctrl.left_click()
     elif event_type == "BOTH_BLINK":
-        input_ctrl.double_click()        
+        input_ctrl.move(_smooth_x, _smooth_y)
+        input_ctrl.double_click()
 
 
 async def _poll_loop():
-    
+    global _smooth_x, _smooth_y
+
     last_frame_id = -1
 
     while True:
         await asyncio.sleep(0.001)
 
         if not reader.is_connected:
+            # Publisher henüz başlamadıysa arka planda bağlanmayı dene
+            try:
+                reader.connect(timeout=0.5)
+                print("[Bridge] Publisher bulundu, bağlantı kuruldu.")
+            except RuntimeError:
+                pass
             continue
 
         try:
@@ -93,6 +106,13 @@ async def _poll_loop():
 
         last_frame_id = snap.frame_id
         latency_us = (snap.read_at_ns - snap.timestamps_ns) / 1_000.0
+
+        # EMA smoothing — ham gaze titreşimini bastırır
+        if snap.confidence > 0.0:
+            _smooth_x = _SMOOTH_ALPHA * snap.gaze_x + (1 - _SMOOTH_ALPHA) * _smooth_x
+            _smooth_y = _SMOOTH_ALPHA * snap.gaze_y + (1 - _SMOOTH_ALPHA) * _smooth_y
+            if _mouse_control_enabled:
+                input_ctrl.move(_smooth_x, _smooth_y)
 
         await _broadcast({
             "type": "gaze",
@@ -129,13 +149,7 @@ async def _poll_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-   
-    print("[Bridge] Shared memory'ye bağlanılıyor...")
-    try:
-        reader.connect(timeout=15.0)
-        print("[Bridge] Bağlantı kuruldu. Servis hazır.")
-    except RuntimeError as e:
-        print(f"[Bridge] Uyarı: {e}")
+    print("[Bridge] Servis başlatılıyor. Publisher bekleniyor...")
 
     task = asyncio.create_task(_poll_loop())      
     

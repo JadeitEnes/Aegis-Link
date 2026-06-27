@@ -1,19 +1,17 @@
-const canvas = document.getElementById('gaze-canvas');
-const ctx = canvas.getContext('2d');
-
+// ── Gaze canvas ──────────────────────────────────────────────────
+const canvas  = document.getElementById('gaze-canvas');
+const ctx     = canvas.getContext('2d');
 const TRAIL_LEN = 30;
-const SMOOTH = 0.15;
+const SMOOTH    = 0.15;
 
-let targetX = canvas.width / 2;
+let targetX = canvas.width  / 2;
 let targetY = canvas.height / 2;
-let smoothX = targetX;
-let smoothY = targetY;
+let smoothX = targetX, smoothY = targetY;
 const trail = [];
 
 function drawFrame() {
     smoothX += (targetX - smoothX) * SMOOTH;
     smoothY += (targetY - smoothY) * SMOOTH;
-
     trail.push({ x: smoothX, y: smoothY });
     if (trail.length > TRAIL_LEN) trail.shift();
 
@@ -31,7 +29,7 @@ function drawFrame() {
         ctx.strokeStyle = `rgba(88,166,255,${alpha * 0.5})`;
         ctx.lineWidth = alpha * 3;
         ctx.moveTo(trail[i-1].x, trail[i-1].y);
-        ctx.lineTo(trail[i].x, trail[i].y);
+        ctx.lineTo(trail[i].x,   trail[i].y);
         ctx.stroke();
     }
 
@@ -50,30 +48,20 @@ function drawFrame() {
 
     requestAnimationFrame(drawFrame);
 }
-
 requestAnimationFrame(drawFrame);
 
-
-const EVENT_LABELS = {
-    LEFT_BLINK: ' Sol Göz',
-    RIGHT_BLINK: ' Sağ Göz',
-    BOTH_BLINK: ' Her İki Göz',
-};
-
-const ACTION_LABELS = {
-    LEFT_BLINK: 'Scroll',
-    RIGHT_BLINK: 'Tıklama',
-    BOTH_BLINK: 'Çift Tıklama',
-};
+// ── Status ────────────────────────────────────────────────────────
+const EVENT_LABELS  = { LEFT_BLINK: 'Sol Göz', RIGHT_BLINK: 'Sağ Göz', BOTH_BLINK: 'Her İki Göz' };
+const ACTION_LABELS = { LEFT_BLINK: 'Scroll',  RIGHT_BLINK: 'Tıklama', BOTH_BLINK: 'Çift Tıklama' };
 
 function setStatus(state) {
-  const labels = {
-    connected:    'Bağlı — Simülatör aktif',
-    degraded:     'Bağlı — Publisher durdu',
-    disconnected: 'Yeniden bağlanıyor...',
-  };
-  document.getElementById('status-dot').className   = state;
-  document.getElementById('status-label').textContent = labels[state] || state;
+    const labels = {
+        connected:    'Bağlı — Aktif',
+        degraded:     'Bağlı — Publisher durdu',
+        disconnected: 'Yeniden bağlanıyor...',
+    };
+    document.getElementById('status-dot').className    = state;
+    document.getElementById('status-label').textContent = labels[state] || state;
 }
 
 function updateGazeUI(msg) {
@@ -83,58 +71,152 @@ function updateGazeUI(msg) {
     document.getElementById('stat-conf').textContent  = (msg.confidence * 100).toFixed(0) + '%';
     document.getElementById('stat-lat').textContent   = msg.latency_us.toFixed(0) + 'µs';
     document.getElementById('stat-pos').textContent   = `${msg.gaze_x.toFixed(3)}, ${msg.gaze_y.toFixed(3)}`;
-    
-    updateEye('left', msg.left_eye_open === 1);
-    updateEye ('right', msg.right_eye_open === 1);
+    updateEye('left',  msg.left_eye_open  === 1);
+    updateEye('right', msg.right_eye_open === 1);
     updateLatencyBar(msg.latency_us);
 }
 
 function updateEye(side, isOpen) {
-    document.getElementById(`eye-${side}-icon`).textContent = isOpen ? '👁' : '-_-';
+    const box  = document.getElementById(`eye-${side}`);
+    const icon = document.getElementById(`eye-${side}-icon`);
+    box.className  = 'eye-box ' + (isOpen ? 'open' : 'closed');
+    icon.textContent = isOpen ? '👁' : '-_-';
 }
 
 function updateLatencyBar(us) {
     const bar = document.getElementById('latency-bar');
-    bar.style.width = Math.min(us / 10000 * 100, 100) + '%';
+    bar.style.width      = Math.min(us / 10000 * 100, 100) + '%';
     bar.style.background = us < 3000 ? '#3fb950' : us < 7000 ? '#d29922' : '#f85149';
 }
 
 function addEvent(ev) {
-    const log = document.getElementById('event-log');
+    const log  = document.getElementById('event-log');
     const item = document.createElement('div');
     item.className = `ev-item ${ev.event_type}`;
     item.innerHTML = `
-    <div class="ev-type">
-      ${EVENT_LABELS[ev.event_type] || ev.event_type}
-      <span style="color:#8d96a0; font-weight:400; font-size:11px; margin-left:6px;">
-        → ${ACTION_LABELS[ev.event_type] || ''}
-      </span>
-    </div>
-    <div class="ev-meta">
-      ${ev.duration_ms.toFixed(0)}ms &nbsp;|&nbsp;
-      (${ev.gaze_x.toFixed(3)}, ${ev.gaze_y.toFixed(3)})
-    </div>`;
-
+        <div class="ev-type">
+            ${EVENT_LABELS[ev.event_type] || ev.event_type}
+            <span style="color:#8d96a0;font-weight:400;font-size:11px;margin-left:6px;">
+                → ${ACTION_LABELS[ev.event_type] || ''}
+            </span>
+        </div>
+        <div class="ev-meta">${ev.duration_ms.toFixed(0)}ms &nbsp;|&nbsp; (${ev.gaze_x.toFixed(3)}, ${ev.gaze_y.toFixed(3)})</div>`;
     log.prepend(item);
-    if (log.children.length > 30) log.removeChild(log.lastChild); 
+    if (log.children.length > 30) log.removeChild(log.lastChild);
 }
+
+// ── WebSocket ─────────────────────────────────────────────────────
+let ws;
 
 function connect() {
-    const ws = new WebSocket(`ws://${location.host}/ws`);
-
-    ws.onopen = () => setStatus('connected');
-    ws.onclose = () => { setStatus ('disconnected');
-    setTimeout(connect, 2000);    
-    };
-
+    ws = new WebSocket(`ws://${location.host}/ws`);
+    ws.onopen  = () => setStatus('connected');
+    ws.onclose = () => { setStatus('disconnected'); setTimeout(connect, 2000); };
     ws.onerror = () => ws.close();
-
     ws.onmessage = ({ data }) => {
         const msg = JSON.parse(data);
-        if (msg.type === 'gaze') updateGazeUI(msg);
-        if (msg.type === 'event') addEvent(msg);
+        if (msg.type === 'gaze')          updateGazeUI(msg);
+        if (msg.type === 'event')         addEvent(msg);
+        if (msg.type === 'cal_progress')  onCalProgress(msg.progress);
+        if (msg.type === 'cal_point_done') onCalPointDone();
+        if (msg.type === 'cal_done')      onCalDone(msg.success);
     };
 }
-
 connect();
 
+// ── Kalibrasyon ───────────────────────────────────────────────────
+const CAL_POINTS = [
+    [0.1, 0.1], [0.5, 0.1], [0.9, 0.1],
+    [0.1, 0.5], [0.5, 0.5], [0.9, 0.5],
+    [0.1, 0.9], [0.5, 0.9], [0.9, 0.9],
+];
+
+let calIndex    = 0;
+let calProgress = 0;
+
+const calOverlay = document.getElementById('cal-overlay');
+const calCanvas  = document.getElementById('cal-canvas');
+const calCtx     = calCanvas.getContext('2d');
+const calInfo    = document.getElementById('cal-info');
+
+function resizeCalCanvas() {
+    calCanvas.width  = window.innerWidth;
+    calCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCalCanvas);
+resizeCalCanvas();
+
+function drawCalPoint(px, py, progress) {
+    calCtx.clearRect(0, 0, calCanvas.width, calCanvas.height);
+    const x = px * calCanvas.width;
+    const y = py * calCanvas.height;
+    const R = 24;
+
+    // Arka halka
+    calCtx.beginPath();
+    calCtx.arc(x, y, R, 0, Math.PI * 2);
+    calCtx.strokeStyle = '#333';
+    calCtx.lineWidth   = 4;
+    calCtx.stroke();
+
+    // İlerleme yayı
+    calCtx.beginPath();
+    calCtx.arc(x, y, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+    calCtx.strokeStyle = '#58a6ff';
+    calCtx.lineWidth   = 4;
+    calCtx.stroke();
+
+    // Merkez nokta
+    calCtx.beginPath();
+    calCtx.arc(x, y, 6, 0, Math.PI * 2);
+    calCtx.fillStyle = '#58a6ff';
+    calCtx.fill();
+}
+
+function startCalibration() {
+    calIndex    = 0;
+    calProgress = 0;
+    calOverlay.classList.add('active');
+    ws.send(JSON.stringify({ type: 'cal_start' }));
+    collectNextPoint();
+}
+
+function collectNextPoint() {
+    if (calIndex >= CAL_POINTS.length) return;
+    const [px, py] = CAL_POINTS[calIndex];
+    calInfo.textContent = `Nokta ${calIndex + 1} / ${CAL_POINTS.length} — Bu noktaya bakın`;
+    drawCalPoint(px, py, 0);
+
+    // 1 saniye bekleme (göz stabilize olsun), sonra toplamaya başla
+    setTimeout(() => {
+        ws.send(JSON.stringify({ type: 'cal_collect', screen_x: px, screen_y: py }));
+    }, 1000);
+}
+
+function onCalProgress(progress) {
+    calProgress = progress;
+    const [px, py] = CAL_POINTS[calIndex];
+    drawCalPoint(px, py, progress);
+}
+
+function onCalPointDone() {
+    calIndex++;
+    if (calIndex >= CAL_POINTS.length) {
+        calInfo.textContent = 'Hesaplanıyor...';
+        ws.send(JSON.stringify({ type: 'cal_finish' }));
+    } else {
+        collectNextPoint();
+    }
+}
+
+function onCalDone(success) {
+    calOverlay.classList.remove('active');
+    const statusEl = document.getElementById('cal-status');
+    if (success) {
+        statusEl.textContent = '✓ Kalibre edildi';
+        statusEl.style.color = '#3fb950';
+    } else {
+        statusEl.textContent = '✗ Kalibrasyon başarısız, tekrar deneyin.';
+        statusEl.style.color = '#f85149';
+    }
+}

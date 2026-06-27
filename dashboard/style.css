@@ -187,12 +187,49 @@ aside {
  }
 
  @keyframes slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateY(0); }
  }
+
+/* Kalibrasyon */
+#cal-btn {
+    width: 100%;
+    padding: 10px;
+    background: rgb(85, 54, 221);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+}
+#cal-btn:hover { background: rgb(105, 74, 241); }
+
+#cal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+#cal-overlay.active { display: flex; }
+
+#cal-canvas {
+    border: none;
+    border-radius: 0;
+}
+
+#cal-instruction {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#cal-info {
+    color: #8d96a0;
+    font-size: 14px;
+}

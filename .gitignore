@@ -5,3 +5,7 @@ bin/
 venv/
 env/
 .venv/
+*.bat
+__pycache__/
+*.pyc
+*.task

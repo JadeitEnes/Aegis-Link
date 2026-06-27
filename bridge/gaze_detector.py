@@ -20,13 +20,13 @@ RIGHT_IRIS  = [469, 470, 471, 472]
 
 LEFT_EYE_TOP     = 159
 LEFT_EYE_BOTTOM  = 145
-LEFT_EYE_LEFT    = 133
-LEFT_EYE_RIGHT   = 33
+LEFT_EYE_LEFT    = 33
+LEFT_EYE_RIGHT   = 133
 
 RIGHT_EYE_TOP    = 386
 RIGHT_EYE_BOTTOM = 374
-RIGHT_EYE_LEFT   = 362
-RIGHT_EYE_RIGHT  = 263
+RIGHT_EYE_LEFT   = 263
+RIGHT_EYE_RIGHT  = 362
 
 EAR_CLOSE_THRESHOLD = 0.015
 
@@ -78,11 +78,29 @@ class GazeDetector:
             p = lm[idx]
             return np.array([p.x * w, p.y * h])
 
-        left_iris_center  = np.mean([pt(i) for i in LEFT_IRIS],  axis=0)
-        right_iris_center = np.mean([pt(i) for i in RIGHT_IRIS], axis=0)
+        # Iris merkezi
+        left_iris  = np.mean([pt(i) for i in LEFT_IRIS],  axis=0)
+        right_iris = np.mean([pt(i) for i in RIGHT_IRIS], axis=0)
 
-        avg_x = (left_iris_center[0] + right_iris_center[0]) / 2 / w
-        avg_y = (left_iris_center[1] + right_iris_center[1]) / 2 / h
+        # Iris'in göz içindeki göreceli konumu — min/max ile köşe sırası önemli değil
+        def relative_iris(iris, corner1_idx, corner2_idx, top_idx, bottom_idx):
+            c1  = pt(corner1_idx)
+            c2  = pt(corner2_idx)
+            top = pt(top_idx)
+            bot = pt(bottom_idx)
+            min_x = min(c1[0], c2[0])
+            max_x = max(c1[0], c2[0])
+            min_y = min(top[1], bot[1])
+            max_y = max(top[1], bot[1])
+            rx = (iris[0] - min_x) / (max_x - min_x + 1e-6)
+            ry = (iris[1] - min_y) / (max_y - min_y + 1e-6)
+            return rx, ry
+
+        lx, ly = relative_iris(left_iris,  LEFT_EYE_LEFT,  LEFT_EYE_RIGHT,  LEFT_EYE_TOP,  LEFT_EYE_BOTTOM)
+        rx, ry = relative_iris(right_iris, RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT, RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM)
+
+        gaze_x = float(np.clip((lx + rx) / 2, 0.0, 1.0))
+        gaze_y = float(np.clip((ly + ry) / 2, 0.0, 1.0))
 
         def ear(top, bottom, left, right):
             vert  = np.linalg.norm(pt(top) - pt(bottom))
@@ -93,8 +111,8 @@ class GazeDetector:
         right_open = ear(RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM, RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT) > EAR_CLOSE_THRESHOLD
 
         return GazeResult(
-            gaze_x=float(np.clip(avg_x, 0.0, 1.0)),
-            gaze_y=float(np.clip(avg_y, 0.0, 1.0)),
+            gaze_x=gaze_x,
+            gaze_y=gaze_y,
             confidence=1.0,
             left_eye_open=left_open,
             right_eye_open=right_open,

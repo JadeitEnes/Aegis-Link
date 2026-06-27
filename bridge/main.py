@@ -50,7 +50,7 @@ _event_queue: deque[EventResponse] = deque(maxlen=50)
 _ws_clients: Set[WebSocket] = set()
 _mouse_control_enabled = True
 
-_SMOOTH_ALPHA = 0.05
+_SMOOTH_ALPHA = 0.08
 _smooth_x: float = 0.5
 _smooth_y: float = 0.5
 

@@ -34,11 +34,11 @@ if (EXISTS "${OPENCV_DATA_DIR}/haarcascade_frontalface_default.xml")
         "${CMAKE_BINARY_DIR}/haarcascade_eye.xml"
         COPYONLY
     )
-    message(STATUS "Cascade dosyaları build dizinine kopyalandı.")
+    message(STATUS "Cascade dosyalari build dizinine kopyalandi.")
 else()
     message(WARNING
-        "Cascade dosyaları bulunamadı: ${OPENCV_DATA_DIR}\n"
-        "Manuel olarak kopyalayın:\n"
+        "Cascade dosyalari bulunamadi: ${OPENCV_DATA_DIR}\n"
+        "Manuel olarak kopyalayin:\n"
         "  haarcascade_frontalface_default.xml\n"
         "  haarcascade_eye.xml\n"
         " C:/msys64/ucrt64/share/opencv4/haarcascades/"

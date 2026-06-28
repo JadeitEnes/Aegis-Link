@@ -159,25 +159,17 @@ aside {
 }
 
 .ev-item {
-    background: blueviolet;
-    border: 1px solid blue;
+    background: rgba(24, 25, 66, 0.9);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 6px;
     padding: 8px 12px;
     font-size: 13px;
     animation: slide-in 0.2s ease;
 }
 
-.ev-item.LEFT_BLINK {
-    border-left: 3px solid #58a6ff;
-}
-
-.ev-item.RIGHT_BLINK {
-    border-left: 3px solid #3fb950;
- }
-
- .ev-item.BOTH_BLINK  { 
-    border-left: 3px solid #d29922;
- }
+.ev-item.LEFT_BLINK  { border-left: 3px solid #3fb950; }
+.ev-item.RIGHT_BLINK { border-left: 3px solid #58a6ff; }
+.ev-item.BOTH_BLINK  { border-left: 3px solid #d29922; }
 
 .ev-item .ev-type { 
     font-weight: 600; margin-bottom: 2px;

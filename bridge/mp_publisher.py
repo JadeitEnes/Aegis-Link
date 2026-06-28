@@ -38,8 +38,9 @@ def main():
     frame_ptr = _EyeTrackFrame.from_buffer(shm.buf)
     print(f"Shared memory hazır: {SHM_NAME}")
 
-    frame_id = 0
-    no_detect = 0
+    frame_id    = 0
+    no_detect   = 0
+    last_result = None
 
     while running:
         img = detector.read_frame()
@@ -51,16 +52,25 @@ def main():
 
         frame_ptr.writer_flag = 1
         if result:
-            frame_ptr.gaze_x        = result.gaze_x
-            frame_ptr.gaze_y        = result.gaze_y
-            frame_ptr.confidence    = result.confidence
+            frame_ptr.gaze_x         = result.gaze_x
+            frame_ptr.gaze_y         = result.gaze_y
+            frame_ptr.confidence     = result.confidence
             frame_ptr.left_eye_open  = 1 if result.left_eye_open  else 0
             frame_ptr.right_eye_open = 1 if result.right_eye_open else 0
             no_detect = 0
+            last_result = result
+        elif last_result is not None and no_detect < 10:
+            # Kısa kayıp (göz kapanması) — son konumu koru, gözleri kapalı say
+            frame_ptr.gaze_x         = last_result.gaze_x
+            frame_ptr.gaze_y         = last_result.gaze_y
+            frame_ptr.confidence     = 0.5
+            frame_ptr.left_eye_open  = 0
+            frame_ptr.right_eye_open = 0
+            no_detect += 1
         else:
-            frame_ptr.gaze_x        = 0.5
-            frame_ptr.gaze_y        = 0.5
-            frame_ptr.confidence    = 0.0
+            frame_ptr.gaze_x         = 0.5
+            frame_ptr.gaze_y         = 0.5
+            frame_ptr.confidence     = 0.0
             frame_ptr.left_eye_open  = 0
             frame_ptr.right_eye_open = 0
             no_detect += 1
@@ -70,7 +80,7 @@ def main():
         frame_ptr.writer_flag   = 0
         frame_id += 1
 
-        if frame_id % 60 == 0:
+        if frame_id % 30 == 0:
             if result:
                 print(f"[Frame {frame_id}] gaze=({result.gaze_x:.3f}, {result.gaze_y:.3f}) "
                       f"L={'A' if result.left_eye_open else 'K'} R={'A' if result.right_eye_open else 'K'}")

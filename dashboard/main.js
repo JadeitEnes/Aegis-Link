@@ -35,15 +35,15 @@ function drawFrame() {
 
     ctx.beginPath();
     ctx.arc(smoothX, smoothY, 18, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(88,166,255,0.15)';
+    ctx.fillStyle = 'rgba(63,185,80,0.15)';
     ctx.fill();
-    ctx.strokeStyle = '#58a6ff';
+    ctx.strokeStyle = '#3fb950';
     ctx.lineWidth = 2;
     ctx.stroke();
 
     ctx.beginPath();
     ctx.arc(smoothX, smoothY, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#58a6ff';
+    ctx.fillStyle = '#3fb950';
     ctx.fill();
 
     requestAnimationFrame(drawFrame);
@@ -52,7 +52,7 @@ requestAnimationFrame(drawFrame);
 
 // ── Status ────────────────────────────────────────────────────────
 const EVENT_LABELS  = { LEFT_BLINK: 'Sol Göz', RIGHT_BLINK: 'Sağ Göz', BOTH_BLINK: 'Her İki Göz' };
-const ACTION_LABELS = { LEFT_BLINK: 'Scroll',  RIGHT_BLINK: 'Tıklama', BOTH_BLINK: 'Çift Tıklama' };
+const ACTION_LABELS = { LEFT_BLINK: 'Tıklama', RIGHT_BLINK: 'Scroll',  BOTH_BLINK: 'Çift Tıklama' };
 
 function setStatus(state) {
     const labels = {
@@ -115,14 +115,40 @@ function connect() {
     ws.onerror = () => ws.close();
     ws.onmessage = ({ data }) => {
         const msg = JSON.parse(data);
-        if (msg.type === 'gaze')          updateGazeUI(msg);
-        if (msg.type === 'event')         addEvent(msg);
-        if (msg.type === 'cal_progress')  onCalProgress(msg.progress);
+        if (msg.type === 'gaze')           updateGazeUI(msg);
+        if (msg.type === 'event')          addEvent(msg);
+        if (msg.type === 'cal_progress')   onCalProgress(msg.progress);
         if (msg.type === 'cal_point_done') onCalPointDone();
-        if (msg.type === 'cal_done')      onCalDone(msg.success);
+        if (msg.type === 'cal_done')       onCalDone(msg.success);
+        if (msg.type === 'center_init')    onCenterInit(msg.progress);
+        if (msg.type === 'center_set')     onCenterSet(msg.center_x, msg.center_y);
+        if (msg.type === 'center_reset')   onCenterReset();
     };
 }
 connect();
+
+// ── Merkez ────────────────────────────────────────────────────────
+function resetCenter() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'set_center' }));
+    }
+}
+
+function onCenterInit(progress) {
+    const pct = Math.round(progress * 100);
+    document.getElementById('center-status').textContent = `Merkez ölçülüyor... ${pct}%`;
+    document.getElementById('center-status').style.color = '#d29922';
+}
+
+function onCenterSet(cx, cy) {
+    document.getElementById('center-status').textContent = `✓ Merkez: (${cx}, ${cy})`;
+    document.getElementById('center-status').style.color = '#3fb950';
+}
+
+function onCenterReset() {
+    document.getElementById('center-status').textContent = 'Merkez ölçülüyor... 0%';
+    document.getElementById('center-status').style.color = '#d29922';
+}
 
 // ── Kalibrasyon ───────────────────────────────────────────────────
 const CAL_POINTS = [

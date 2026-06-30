@@ -44,10 +44,10 @@ class GazeDetector:
             base_options=BaseOptions(model_asset_path=MODEL_PATH),
             running_mode=RunningMode.IMAGE,
             num_faces=1,
-            min_face_detection_confidence=0.5,
-            min_face_presence_confidence=0.5,
-            min_tracking_confidence=0.5,
-            output_face_blendshapes=False,
+            min_face_detection_confidence=0.4,
+            min_face_presence_confidence=0.4,
+            min_tracking_confidence=0.4,
+            output_face_blendshapes=True,
             output_facial_transformation_matrixes=False,
         )
         self._detector = FaceLandmarker.create_from_options(options)
@@ -103,47 +103,43 @@ class GazeDetector:
         nose_in_face_y = (nose[1] - forehead[1]) / face_h  # ~0.3-0.7
         gaze_y = 1.0 - nose_in_face_y  # ters: yukarı bak → gaze_y küçük
 
-        # Göz kapanma (EAR)
-        def ear(top, bottom, left, right):
-            p_top = pt(top) * np.array([w, h])
-            p_bot = pt(bottom) * np.array([w, h])
-            p_l   = pt(left)  * np.array([w, h])
-            p_r   = pt(right) * np.array([w, h])
-            vert  = np.linalg.norm(p_top - p_bot)
-            horiz = np.linalg.norm(p_l   - p_r)
-            return vert / (horiz + 1e-6)
+        # Göz kapanma — MediaPipe blend shapes kullan (kafa açısını kompanse eder)
+        BLINK_THRESHOLD = 0.45
+        blink_l = 0.0
+        blink_r = 0.0
+        if result.face_blendshapes:
+            for bs in result.face_blendshapes[0]:
+                if bs.category_name == 'eyeBlinkLeft':
+                    blink_l = bs.score
+                elif bs.category_name == 'eyeBlinkRight':
+                    blink_r = bs.score
 
-        l_ear = ear(LEFT_EYE_TOP,  LEFT_EYE_BOTTOM,  LEFT_EYE_LEFT,  LEFT_EYE_RIGHT)
-        r_ear = ear(RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM, RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT)
+        if not hasattr(self, '_blink_log_counter'):
+            self._blink_log_counter = 0
+        self._blink_log_counter += 1
+        if self._blink_log_counter % 30 == 0:
+            print(f"[BLINK] L={blink_l:.3f} R={blink_r:.3f} threshold={BLINK_THRESHOLD}")
 
-        # EAR geçmişi — son 3 frame ortalaması ile karar ver
-        if not hasattr(self, '_l_ear_hist'):
-            self._l_ear_hist = []
-            self._r_ear_hist = []
-            self._ear_log_counter = 0
+        # Blend shape anatomik gözü gösteriyor, aynalı swap gereksiz
+        left_open  = blink_l < BLINK_THRESHOLD   # eyeBlinkLeft = kullanıcının sol gözü
+        right_open = blink_r < BLINK_THRESHOLD   # eyeBlinkRight = kullanıcının sağ gözü
 
-        self._l_ear_hist.append(l_ear)
-        self._r_ear_hist.append(r_ear)
-        if len(self._l_ear_hist) > 3:
-            self._l_ear_hist.pop(0)
-            self._r_ear_hist.pop(0)
+        gaze_x = float(np.clip(gaze_x, 0.0, 1.0))
+        gaze_y = float(np.clip(gaze_y, 0.0, 1.0))
 
-        avg_l = sum(self._l_ear_hist) / len(self._l_ear_hist)
-        avg_r = sum(self._r_ear_hist) / len(self._r_ear_hist)
-
-        self._ear_log_counter += 1
-        if self._ear_log_counter % 30 == 0:
-            print(f"[EAR] L={avg_l:.4f} R={avg_r:.4f} threshold={EAR_THRESHOLD}")
-
-        left_open  = avg_l > EAR_THRESHOLD
-        right_open = avg_r > EAR_THRESHOLD
+        # Ani sıçramaları at — bir frame'de 0.3'ten fazla değişim outlier'dır
+        if hasattr(self, '_prev_gaze_x'):
+            if abs(gaze_x - self._prev_gaze_x) > 0.3 or abs(gaze_y - self._prev_gaze_y) > 0.3:
+                return None
+        self._prev_gaze_x = gaze_x
+        self._prev_gaze_y = gaze_y
 
         return GazeResult(
-            gaze_x=float(np.clip(gaze_x, 0.0, 1.0)),
-            gaze_y=float(np.clip(gaze_y, 0.0, 1.0)),
+            gaze_x=gaze_x,
+            gaze_y=gaze_y,
             confidence=1.0,
-            left_eye_open=right_open,   # kamera aynalı — swap
-            right_eye_open=left_open,
+            left_eye_open=left_open,
+            right_eye_open=right_open,
         )
 
     def close(self) -> None:

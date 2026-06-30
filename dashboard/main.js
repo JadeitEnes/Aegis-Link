@@ -127,6 +127,20 @@ function connect() {
 }
 connect();
 
+// Klavye kısayolları
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'c' || e.key === 'C') {
+        startCalibration();
+    }
+    if (e.key === ' ') {
+        e.preventDefault();
+        fetch('/toggle', { method: 'POST' }).then(r => r.json()).then(d => {
+            document.getElementById('status-label').textContent =
+                d.mouse_control ? 'Bağlı — Aktif' : 'Bağlı — Fare DURDURULDU (Space)';
+        });
+    }
+});
+
 // ── Merkez ────────────────────────────────────────────────────────
 function resetCenter() {
     if (ws && ws.readyState === WebSocket.OPEN) {

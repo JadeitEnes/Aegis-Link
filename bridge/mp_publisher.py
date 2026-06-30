@@ -59,7 +59,7 @@ def main():
             frame_ptr.right_eye_open = 1 if result.right_eye_open else 0
             no_detect = 0
             last_result = result
-        elif last_result is not None and no_detect < 10:
+        elif last_result is not None and no_detect < 60:
             # Kısa kayıp (göz kapanması) — son konumu koru, gözleri kapalı say
             frame_ptr.gaze_x         = last_result.gaze_x
             frame_ptr.gaze_y         = last_result.gaze_y
